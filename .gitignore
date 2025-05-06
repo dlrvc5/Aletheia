@@ -1,0 +1,12 @@
+# Visual Studio geçici dosyaları
+.vs/
+*.user
+*.suo
+
+# Derleme klasörleri
+bin/
+obj/
+
+# Diğer
+*.db
+appsettings.Development.json
