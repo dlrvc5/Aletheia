@@ -1,27 +1,71 @@
-﻿using NewsAnalysisAPI.DTOs;
-using System.Collections.Generic;
+﻿
+
+using NewsAnalysisAPI.DTOs;
+using Microsoft.Extensions.Configuration;
+using System.Data.SqlClient;
 
 namespace NewsAnalysisAPI.Services
 {
     public class NewsService : INewsService
     {
-        private readonly List<NewsDTO> _newsList = new();
+        private readonly string _connectionString;
+
+        public NewsService(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
 
         public IEnumerable<NewsDTO> GetAllNews()
         {
-            return _newsList;
-        }
+            var newsList = new List<NewsDTO>();
 
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var query = "SELECT Id, Title, Content, Author, Source FROM News";
+                using var command = new SqlCommand(query, connection);
+                using var reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    var news = new NewsDTO
+                    {
+                        Id = reader.GetInt32(0),
+                        Title = reader.GetString(1),
+                        Content = reader.GetString(2),
+                        Author = reader.GetString(3),
+                        Source = reader.GetString(4)
+                    };
+
+                    newsList.Add(news);
+                }
+            }
+
+            return newsList;
+        }
         public NewsDTO? GetNewsById(int id)
         {
-            return _newsList.Find(news => news.Id == id);
-        }
+            using SqlConnection connection = new SqlConnection(_connectionString);
+            connection.Open();
 
-        public NewsDTO CreateNews(NewsDTO newsDto)
-        {
-            newsDto.Id = _newsList.Count + 1;
-            _newsList.Add(newsDto);
-            return newsDto;
+            var query = "SELECT Id, Title, Content, Author, Source FROM News WHERE Id = @Id";
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Id", id);
+
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return new NewsDTO
+                {
+                    Id = reader.GetInt32(0),
+                    Title = reader.GetString(1),
+                    Content = reader.GetString(2),
+                    Author = reader.GetString(3),
+                    Source = reader.GetString(4)
+                };
+            }
+
+            return null;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using NewsAnalysisAPI.DTOs;
+using System.Collections.Generic;
 
 namespace NewsAnalysisAPI.Services
 {
@@ -6,6 +7,6 @@ namespace NewsAnalysisAPI.Services
     {
         IEnumerable<NewsDTO> GetAllNews();
         NewsDTO GetNewsById(int id);
-        NewsDTO CreateNews(NewsDTO newsDto);
+        
     }
 }

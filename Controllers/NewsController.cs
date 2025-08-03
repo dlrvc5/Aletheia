@@ -37,12 +37,6 @@ namespace NewsAnalysisAPI.Controllers
             return Ok(news);
         }
 
-        // POST: api/news
-        [HttpPost]
-        public ActionResult<NewsDTO> CreateNews(NewsDTO newsDto)
-        {
-            var createdNews = _newsService.CreateNews(newsDto);
-            return CreatedAtAction(nameof(GetNewsById), new { id = createdNews.Id }, createdNews);
-        }
+        
     }
 }

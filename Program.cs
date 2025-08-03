@@ -1,60 +1,54 @@
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using NewsAnalysisAPI.Services;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-//// CORS Politikasý 
-//IServiceCollection serviceCollection = builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowFrontend",
-//        policy =>
-//        {
-//            policy.WithOrigins(alowedOrigins) // Frontend URL'si (React, Angular, vs.)
-//                  .AllowAnyHeader()
-//                  .AllowAnyMethod();
-//        });
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-//});
 
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins(allowedOrigins) // JSON'dan gelen URL'leri kullan
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// Servisler
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Servisleri Dependency Injection ile ekleyelim
 builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
 
 
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// API'yi çalýþtýrmak için middleware
+// HTTPS yönlendirme
+//app.UseHttpsRedirection();
 
-app.UseHttpsRedirection();
-app.MapControllers();
-app.UseCors("AllowSpecificOrigin");
+// CORS policy uygulamasý (isim eþleþmeli!)
+app.UseCors("AllowFrontend");
+
+// Authorization middleware (þimdilik boþ ama hazýr olsun)
 app.UseAuthorization();
+
+// Controller route’larý
 app.MapControllers();
+
 app.Run();
