@@ -1,71 +1,84 @@
-﻿
-
+﻿using MongoDB.Driver;
+using NewsAnalysisAPI.Models;
 using NewsAnalysisAPI.DTOs;
-using Microsoft.Extensions.Configuration;
-using System.Data.SqlClient;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NewsAnalysisAPI.Services
 {
     public class NewsService : INewsService
     {
-        private readonly string _connectionString;
+        private readonly IMongoCollection<News> _newsCollection;
 
         public NewsService(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
+            var database = client.GetDatabase(configuration["MongoDB:DatabaseName"]);
+            _newsCollection = database.GetCollection<News>("Leroy_Sane_den_Sacha_Boey_e_sürpriz_telefon");
         }
 
-        public IEnumerable<NewsDTO> GetAllNews()
+        public async Task<IEnumerable<NewsDTO>> GetAllNewsAsync()
         {
-            var newsList = new List<NewsDTO>();
+            var newsList = await _newsCollection.Find(_ => true).ToListAsync();
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            return newsList.Select(n => new NewsDTO
             {
-                connection.Open();
-                var query = "SELECT Id, Title, Content, Author, Source FROM News";
-                using var command = new SqlCommand(query, connection);
-                using var reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    var news = new NewsDTO
-                    {
-                        Id = reader.GetInt32(0),
-                        Title = reader.GetString(1),
-                        Content = reader.GetString(2),
-                        Author = reader.GetString(3),
-                        Source = reader.GetString(4)
-                    };
-
-                    newsList.Add(news);
-                }
-            }
-
-            return newsList;
+                Id = n.Id,
+                Title = n.Title,
+                Content = n.Content,
+                Author = n.Author,
+                Source = n.Source,
+                ImageUrl = n.ImageUrl
+            });
         }
-        public NewsDTO? GetNewsById(int id)
+
+        public async Task<NewsDTO?> GetNewsByIdAsync(string id)
         {
-            using SqlConnection connection = new SqlConnection(_connectionString);
-            connection.Open();
+            var news = await _newsCollection.Find(n => n.Id == id).FirstOrDefaultAsync();
 
-            var query = "SELECT Id, Title, Content, Author, Source FROM News WHERE Id = @Id";
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Id", id);
+            if (news == null) return null;
 
-            using var reader = command.ExecuteReader();
-            if (reader.Read())
+            return new NewsDTO
             {
-                return new NewsDTO
-                {
-                    Id = reader.GetInt32(0),
-                    Title = reader.GetString(1),
-                    Content = reader.GetString(2),
-                    Author = reader.GetString(3),
-                    Source = reader.GetString(4)
-                };
-            }
+                Id = news.Id,
+                Title = news.Title,
+                Content = news.Content,
+                Author = news.Author,
+                Source = news.Source
+            };
+        }
 
-            return null;
+        public async Task CreateNewsAsync(NewsDTO newsDto)
+        {
+            var news = new News
+            {
+                Title = newsDto.Title,
+                Content = newsDto.Content,
+                Author = newsDto.Author,
+                Source = newsDto.Source
+            };
+
+            await _newsCollection.InsertOneAsync(news);
+        }
+
+        public async Task UpdateNewsAsync(string id, NewsDTO newsDto)
+        {
+            var news = new News
+            {
+                Id = id,
+                Title = newsDto.Title,
+                Content = newsDto.Content,
+                Author = newsDto.Author,
+                Source = newsDto.Source
+            };
+
+            await _newsCollection.ReplaceOneAsync(n => n.Id == id, news);
+        }
+
+        public async Task DeleteNewsAsync(string id)
+        {
+            await _newsCollection.DeleteOneAsync(n => n.Id == id);
         }
     }
 }

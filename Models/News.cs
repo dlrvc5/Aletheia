@@ -1,10 +1,27 @@
-﻿namespace NewsAnalysisAPI.Models;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-public class News
+namespace NewsAnalysisAPI.Models
 {
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public string Content { get; set; }
-    public string Author { get; set; }
-    public string Source { get; set; }
+    public class News
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; } = null!;
+
+        [BsonElement("Başlık")]
+        public string Title { get; set; } = null!;
+
+        [BsonElement("Metin_İçerik")]
+        public string Content { get; set; } = null!;
+
+        [BsonElement("Yazar")]
+        public string Author { get; set; } = null!;
+
+        [BsonElement("Kaynak")]
+        public string Source { get; set; } = null!;
+
+        [BsonElement("Görsel_Link")]
+        public string ImageUrl { get; set; } = null!;
+    }
 }

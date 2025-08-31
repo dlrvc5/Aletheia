@@ -1,12 +1,15 @@
 ﻿using NewsAnalysisAPI.DTOs;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NewsAnalysisAPI.Services
 {
     public interface INewsService
     {
-        IEnumerable<NewsDTO> GetAllNews();
-        NewsDTO GetNewsById(int id);
-        
+        Task<IEnumerable<NewsDTO>> GetAllNewsAsync();
+        Task<NewsDTO?> GetNewsByIdAsync(string id);
+        Task CreateNewsAsync(NewsDTO news);
+        Task UpdateNewsAsync(string id, NewsDTO news);
+        Task DeleteNewsAsync(string id);
     }
 }

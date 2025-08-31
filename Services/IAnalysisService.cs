@@ -1,9 +1,11 @@
 ﻿using NewsAnalysisAPI.DTOs;
+using System.Threading.Tasks;
 
 namespace NewsAnalysisAPI.Services
 {
     public interface IAnalysisService
     {
-        AnalysisResultDTO AnalyzeNews(AnalysisDTO analysisDto);
+        Task<AnalysisResultDTO> AnalyzeNewsAsync(AnalysisDTO analysisDto);
+        Task<IEnumerable<AnalysisResultDTO>> GetAllAnalysesAsync();
     }
 }
