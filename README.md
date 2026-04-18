@@ -6,7 +6,7 @@
 Kullanıcıların haber içeriklerini analiz ederek:
 
 - Haber tutarlılık skorunu hesaplamak
-- Yanlış bilgi (misinformation) olasılığını belirlemek
+- Yanlış bilgi olasılığını belirlemek
 - Analiz sonuçlarını veritabanına kaydetmek
 
 
@@ -25,11 +25,11 @@ Kullanıcıların haber içeriklerini analiz ederek:
 1. Haberler MongoDB’den çekilir  
 2. Kullanıcı newsId ile analiz isteği gönderir  
 3. AI Service haber içeriğini analiz eder  
-4. Sonuç (skor + yorum) oluşturulur  
+4. Sonuç  oluşturulur  
 5. Sonuç MongoDB’ye kaydedilir  
 
 
-## 🔮 Gelecek Geliştirmeler
+##  Gelecek Geliştirmeler
 
 - Gerçek AI model entegrasyonu 
 - Haber arama
