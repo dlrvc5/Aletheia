@@ -5,7 +5,7 @@ using NewsAnalysisAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -16,14 +16,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Controller ve Swagger
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// MongoDB servisleri
+
 builder.Services.AddSingleton<INewsService, NewsService>();
 builder.Services.AddSingleton<IAnalysisService, AnalysisService>();
+builder.Services.AddSingleton<IAIService, AIService>();
 
 var app = builder.Build();
 
@@ -33,11 +34,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// CORS ve Authorization
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
-
-// Controller route'larý
 app.MapControllers();
 
 app.Run();

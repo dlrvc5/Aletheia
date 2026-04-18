@@ -15,7 +15,7 @@ namespace NewsAnalysisAPI.Services
         {
             var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
             var database = client.GetDatabase(configuration["MongoDB:DatabaseName"]);
-            _newsCollection = database.GetCollection<News>("Leroy_Sane_den_Sacha_Boey_e_sürpriz_telefon");
+            _newsCollection = database.GetCollection<News>("News");
         }
 
         public async Task<IEnumerable<NewsDTO>> GetAllNewsAsync()

@@ -1,66 +1,73 @@
 ﻿using NewsAnalysisAPI.DTOs;
 using NewsAnalysisAPI.Models;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NewsAnalysisAPI.Services
 {
     public class AnalysisService : IAnalysisService
     {
-        private readonly IMongoCollection<AnalysisResult> _collection;
+        private readonly IMongoCollection<News> _newsCollection;
+        private readonly IAIService _aiService;
 
-        public AnalysisService(IConfiguration configuration)
+        public AnalysisService(IConfiguration configuration, IAIService aiService)
         {
             var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
             var database = client.GetDatabase(configuration["MongoDB:DatabaseName"]);
-            _collection = database.GetCollection<AnalysisResult>("AnalysisResults");
+
+           
+            _newsCollection = database.GetCollection<News>("News");
+
+            _aiService = aiService;
         }
 
-        public async Task<AnalysisResultDTO> AnalyzeNewsAsync(AnalysisDTO analysisDto)
+        
+        public async Task<AnalysisResultDTO> AnalyzeNewsAsync(string newsId)
         {
-            if (analysisDto == null || string.IsNullOrWhiteSpace(analysisDto.Content))
-                throw new ArgumentException("Geçersiz analiz verisi.");
+            if (string.IsNullOrWhiteSpace(newsId))
+                throw new ArgumentException("NewsId boş olamaz.");
 
-            var resultDto = new AnalysisResultDTO
+           
+            var news = await _newsCollection
+                .Find(x => x.Id == newsId)
+                .FirstOrDefaultAsync();
+
+            if (news == null)
+                throw new Exception("Haber bulunamadı.");
+
+            
+            var aiResult = await _aiService.AnalyzeNewsAsync(news.Content);
+
+            
+            return new AnalysisResultDTO
             {
-                NewsId = analysisDto.NewsId,
-                ConsistencyScore = 85.5,
-                MisinformationProbability = 10.2,
-                AnalysisSummary = "Bu haber büyük ölçüde tutarlıdır."
+                NewsId = news.Id,
+                ConsistencyScore = aiResult.ConsistencyScore,
+                MisinformationProbability = aiResult.MisinformationProbability,
+                AnalysisSummary = aiResult.AnalysisSummary
             };
-
-            var result = new AnalysisResult
-            {
-                NewsId = resultDto.NewsId,
-                ConsistencyScore = resultDto.ConsistencyScore,
-                MisinformationProbability = resultDto.MisinformationProbability,
-                AnalysisSummary = resultDto.AnalysisSummary
-            };
-
-            await _collection.InsertOneAsync(result);
-            return resultDto;
         }
 
-        //analizleri getirir
+        
         public async Task<IEnumerable<AnalysisResultDTO>> GetAllAnalysesAsync()
         {
-            var results = await _collection.Find(_ => true).ToListAsync();
+            var newsList = await _newsCollection.Find(_ => true).ToListAsync();
 
-            var dtoList = new List<AnalysisResultDTO>();
-            foreach (var r in results)
+            var results = new List<AnalysisResultDTO>();
+
+            foreach (var news in newsList)
             {
-                dtoList.Add(new AnalysisResultDTO
+                var aiResult = await _aiService.AnalyzeNewsAsync(news.Content);
+
+                results.Add(new AnalysisResultDTO
                 {
-                    NewsId = r.NewsId,
-                    ConsistencyScore = r.ConsistencyScore,
-                    MisinformationProbability = r.MisinformationProbability,
-                    AnalysisSummary = r.AnalysisSummary
+                    NewsId = news.Id,
+                    ConsistencyScore = aiResult.ConsistencyScore,
+                    MisinformationProbability = aiResult.MisinformationProbability,
+                    AnalysisSummary = aiResult.AnalysisSummary
                 });
             }
 
-            return dtoList;
+            return results;
         }
     }
 }

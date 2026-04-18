@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NewsAnalysisAPI.DTOs;
 using NewsAnalysisAPI.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NewsAnalysisAPI.Controllers
 {
@@ -17,7 +15,7 @@ namespace NewsAnalysisAPI.Controllers
             _newsService = newsService;
         }
 
-        // GET: api/news
+      
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NewsDTO>>> GetAllNews()
         {
@@ -25,7 +23,7 @@ namespace NewsAnalysisAPI.Controllers
             return Ok(news);
         }
 
-        // GET: api/news/{id}
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<NewsDTO>> GetNewsById(string id)
         {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NewsAnalysisAPI.DTOs;
 using NewsAnalysisAPI.Services;
-using System.Threading.Tasks;
+
 
 namespace NewsAnalysisAPI.Controllers
 {
@@ -16,21 +15,17 @@ namespace NewsAnalysisAPI.Controllers
             _analysisService = analysisService;
         }
 
-        // POST: api/analysis
-        [HttpPost]
-        public async Task<ActionResult<AnalysisResultDTO>> AnalyzeNews([FromBody] AnalysisDTO analysisDto)
-        {
-            if (analysisDto == null || string.IsNullOrWhiteSpace(analysisDto.Content))
-            {
-                return BadRequest("Haber analizi için geçerli bir içerik sağlamalısınız.");
-            }
 
-            var result = await _analysisService.AnalyzeNewsAsync(analysisDto);
+        
+        [HttpPost("{newsId}")]
+        public async Task<IActionResult> AnalyzeNews(string newsId)
+        {
+            var result = await _analysisService.AnalyzeNewsAsync(newsId);
             return Ok(result);
         }
-        // GET: api/analysis
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AnalysisResultDTO>>> GetAllAnalyses()
+        public async Task<IActionResult> GetAllAnalyses()
         {
             var results = await _analysisService.GetAllAnalysesAsync();
             return Ok(results);
